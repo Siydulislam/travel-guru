@@ -1,0 +1,12 @@
+.card-img {
+    height: 200px;
+}
+
+.card-body p {
+    margin: 0;
+}
+
+.star-rate {
+    float: right;
+    display: block;
+}
