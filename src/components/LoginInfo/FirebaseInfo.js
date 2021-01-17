@@ -9,81 +9,146 @@ export const initializeLoginFramework = () => {
     }
 }
 
-export const handleGoogleSignin = () => {
+export const handleGoogleSignIn = () => {
     const googleProvider = new firebase.auth.GoogleAuthProvider();
     return firebase.auth().signInWithPopup(googleProvider)
     .then(res => {
-        const {displayName, email} = res.user;
-        const signedInUser = {
-            isSignedIn : true,
+        const {displayName, email, photoURL, emailVerified } = res.user;
+        const user = {
             name: displayName,
             email: email,
-            success: true
+            photo: photoURL,
+            emailVerified
         }
-        return signedInUser;
+        return user;
     })
-    .catch(err => {
-        console.log(err);
-        console.log(err.message);
+    .catch(error => {
+        const errors = {}
+        errors.error = error.message;
+        return errors;
     })
 }
 
-export const handleFbSignin = () => {
+export const handleFbSignIn = () => {
     const fbProvider = new firebase.auth.FacebookAuthProvider();
     return firebase.auth().signInWithPopup(fbProvider)
     .then(res => {
-        const {displayName, email} = res.user;
-        const signedInUser = {
-            isSignedIn : true,
+        const {displayName, email, photoURL, emailVerified } = res.user;
+        const user = {
             name: displayName,
             email: email,
-            success: true
+            photo: photoURL,
+            emailVerified
         }
-        return signedInUser;
+        return user;
         
       })
-      .catch(err => {
-        console.log(err);
-        console.log(err.message);
+      .catch(error => {
+        const errors = {}
+        errors.error = error.message;
+        return errors;
     })
 }
 
-    export const createUserWithEmailAndPassword = (name, email, password) => {
-        return firebase.auth().createUserWithEmailAndPassword(email, password)
-            .then( res => {
-                const newUserInfo = res.user;
-                newUserInfo.error = '';
-                newUserInfo.success = true;
-                updateUserName(name);
-                return newUserInfo;
-            })
-            .catch(error => {
-                const newUserInfo = {};
-                newUserInfo.error = error.message;
-                newUserInfo.success = false;
-                return newUserInfo;
-            });
-    }
+export const createUserWithEmailAndPassword = ({ firstName, lastName, email, password}) => {
+    return firebase.auth().createUserWithEmailAndPassword(email, password)
+        .then( res => {
+            const name = `${firstName + ' ' +  lastName}`;
+            const { email } = res.user;
+            const signedInUser = {
+                name,
+                email
+            }
+            updateUserName(name);
+            verifyEmail();
+            return signedInUser;
+        })
+        .catch(error => {
+            const errors = {};
+            if(error.code === 'auth/email-already-in-use') {
+                errors.error = "This email address is already in use by another account!";
+            } else {
+                errors.error = error.message;
+            }
+            return errors;
+        });
+}
 
-    export const signInWithEmailAndPassword = (email, password) => {
-        return firebase.auth().signInWithEmailAndPassword(email, password)
-            .then(res => {
-                const newUserInfo = res.user;
-                newUserInfo.error = '';
-                newUserInfo.success = true;
-                return newUserInfo;
-            })
-            .catch(error => {
-                const newUserInfo = {};
-                newUserInfo.error = error.message;
-                newUserInfo.success = false;
-                return newUserInfo;
-            });
-    }
+export const signInWithEmailAndPassword = ({ email, password }) => {
+    return firebase.auth().signInWithEmailAndPassword(email, password)
+        .then(res => {
+            const { displayName, email, emailVerified } = res.user;
+            const user = {
+                name: displayName,
+                email: email,
+                emailVerified
+            }
+            if (!emailVerified) {
+                verifyEmail();
+            }
+            return user;
+        })
+        .catch(error => {
+            const errors = {}
+            if(error.code === 'auth/user-not-found') {
+                errors.error = "No user found with this email!";
+            }
+            else if (error.code === 'auth/wrong-password') {
+                errors.error = "The password that you've entered is incorrect!";
+            }
+            else {
+                errors.error = error.message;
+            }
+            return errors;
+        });
+}
 
-    const updateUserName = name => {
-        const user = firebase.auth().currentUser;
-        user.updateProfile({
-            displayName: name
-        });   
-    }
+export const handleSignOut = () => {
+    return firebase.auth().signOut()
+        .then(() => {
+            return null;
+        })
+        .catch(error => {
+            console.log(error);
+        })
+}
+
+const updateUserName = name => {
+    const user = firebase.auth().currentUser;
+    user.updateProfile({
+        displayName: name
+    }).then(function() {
+        return 'Username has been updated successfully';
+    }).catch(error => {
+        return error
+    })
+}
+
+const verifyEmail = () => {
+    const user = firebase.auth().currentUser();
+    user.sendEmailVerification().then(function () {
+
+    }).catch(error => {
+
+    })
+}
+
+export const getCurrentUser = () => {
+    return new Promise(resolve => {
+        firebase.auth().onAuthStateChanged(function (user) {
+            if(user) {
+                const { displayName, email, photoURL, emailVerified } = user;
+                const currentUser = {
+                    name: displayName,
+                    email: email,
+                    photo: photoURL,
+                    emailVerified
+                }
+                resolve(currentUser)
+
+            } else {
+                resolve(user)
+            }
+        })
+    })
+}

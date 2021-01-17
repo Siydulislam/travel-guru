@@ -1,47 +1,81 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Button, Col, Container, Jumbotron, Row } from 'react-bootstrap';
+import './Home.css';
+import LocationItem from './LocationItem';
+import locations from '../../fakeData/data';
+import { useHistory } from 'react-router-dom';
+import SwiperCore, { Navigation, Pagination, Scrollbar, A11y, Autoplay } from 'swiper';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { BsArrowRight } from 'react-icons/bs';
+import 'swiper/swiper.scss';
+import 'swiper/components/navigation/navigation.scss';
+import 'swiper/components/pagination/pagination.scss';
+import 'swiper/components/scrollbar/scrollbar.scss';
 import Background from '../../images/Background.png';
-import Sundorbon from '../../images/Sundorbon.png';
-import Sreemongol from '../../images/Sreemongol.png';
-import Sajek from '../../images/Sajek.png';
-import Navbar from '../Navbar/Navbar';
-import { Link } from 'react-router-dom';
+
+SwiperCore.use([Navigation, Pagination, Scrollbar, A11y, Autoplay]);
 
 const Home = () => {
+  const history = useHistory();
+  const [slideIndex, setSlideIndex] = useState(0);
+  const [booking, setBooking] = useState({});
 
-    const backgroundImage = {
-        background: `url(${Background})`,
-        backgroundSize: '100% 100%',
-        width: '100%',
-        height: '100vh'
+  useEffect(() => {
+    const activeItem = locations.find((loctaion, index) => index.toString() === slideIndex.toString())
+    setBooking(activeItem)
+  }, [slideIndex]);
+
+  const onClickHandler = swiper => {
+    if (swiper.clickedSlide) {
+      if (swiper.clickedSlide.attributes) {
+        var a = swiper.clickedSlide.attributes.getNamedItem('data-swiper-slide-index').value;
+        setSlideIndex(a);
+      }
     }
-    return (
-        <div style={backgroundImage}>
-            <Navbar></Navbar>
-            <div className="container mt-5 text-white">
-                <div className="row">
-                    <div className="col-4 mt-5">
-                        <h1 className="mt-5" style={{filter:'brightness(100%)'}}><strong>Cox's Bazar</strong></h1>
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt, placeat modi facilis animi cupiditate corporis deserunt ea tempora, labore nobis quam sit pariatur. Nihil illo recusandae iure, in dolorem vel magni suscipit! Eligendi exercitationem incidunt id iure vitae, enim quam cumque sequi! Iusto expedita adipisci aliquam in. Aut, laudantium nesciunt.</p>
-                        <Link to="/booking"><button className="btn btn-outline-success text-white">Booking</button></Link>
-                    </div>
-                    <div className="col-8 mt-5">
-                        <div className="row">
-                            <div className="col-4 mt-5">
-                                <img src={Sundorbon} alt="" style={{ width: '100%' }}/>
-                            </div>
-                            <div className="col-4 mt-5">
-                                <img src={Sreemongol} alt="" style={{ width: '100%' }}/>
-                            </div>
-                            <div className="col-4 mt-5">
-                                <img src={Sajek} alt="" style={{ width: '100%' }}/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-        </div>
-    );
+  }
+
+  const backgroundImage = {
+    background: `url(${Background})`,
+    backgroundSize: '100% 100%',
+    width: '100%',
+    height: '100vh'
+  }
+
+  return (
+    <Container className="pr-0 mt-5 pt-5" style={backgroundImage}>
+      <Row>
+        <Col sm={4} xl={4}>
+          <Jumbotron className="bg-transparent px-0">
+            <h1 className="font-weight-bold">{booking.name}</h1>
+            <p>{booking.description?.slice(0, 150)} ...</p>
+            <Button className="px-4 py-2" variant="warning" onClick={() => history.push(`/booking/${booking.id}`)}>Booking <BsArrowRight /> </Button>
+          </Jumbotron>
+        </Col>
+        <Col sm={8} xl={8}>
+          <Swiper
+            spaceBetween={15}
+            slidesPerView={3}
+            navigation
+            autoplay={{
+              delay: 2000,
+              disableOnInteraction: false
+            }}
+            loop={true}
+            onClick={(swiper) => onClickHandler(swiper)}
+            onSlideChange={(swiper) => setSlideIndex(swiper.realIndex)}
+          >
+            {locations.map(location => {
+              return (<SwiperSlide key={location.id}>
+                {({ isActive }) => (
+                  <LocationItem isActive={isActive} location={location} />
+                )}
+              </SwiperSlide>)
+            })}
+          </Swiper>
+        </Col>
+      </Row>
+    </Container>
+  );
 };
 
 export default Home;

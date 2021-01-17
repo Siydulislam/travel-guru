@@ -1,162 +1,215 @@
-import React, { useContext, useState } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
-import Navbar from '../Navbar/Navbar';
+import React, { useContext, useEffect, useState } from 'react';
+import { Redirect, useHistory, useLocation } from 'react-router-dom';
+import { css } from '@emotion/core';
+import FadeLoader from 'react-spinners/FadeLoader';
 import Google from '../../images/Google.png';
 import Fb from '../../images/Fb.png';
 import './SignUp.css';
 import { UserContext } from '../../App';
-import { createUserWithEmailAndPassword, handleFbSignin, handleGoogleSignin, initializeLoginFramework, signInWithEmailAndPassword } from './FirebaseInfo';
+import { createUserWithEmailAndPassword, handleFbSignIn, handleGoogleSignIn, initializeLoginFramework, signInWithEmailAndPassword } from './FirebaseInfo';
+import { Button, Card, Col, Container, Form, Row } from 'react-bootstrap';
+import InputItem from '../Input/InputItem';
+import handleError from '../Input/ErrorHandler';
+
+initializeLoginFramework();
+
+const initUser = {
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    errors: {}
+};
 
 const Login = () => {
-
-    const [newUser, setNewUser] = useState(false);
-
-    const [user, setUser] = useState({
-        isSignedIn : false,
-        name: '',
-        email: '',
-        password: ''
-    })
-
-    initializeLoginFramework();
-
-    const [loggedInUser, setLoggedInUser] = useContext(UserContext);
+    const { user, setUser } = useContext(UserContext);
     const history = useHistory();
     const location = useLocation();
-    let { from } = location.state || { from: { pathname: "/details" } };
+    let { from } = location.state || { from: { pathname: "/"} };
+    const [loading, setLoading] = useState(false);
+    const [newUser, setNewUser] = useState(true);
+    const [userInfo, setUserInfo] = useState({ ...initUser });
 
-    const googleSignin = () => {
-        handleGoogleSignin()
+    const onChangeHandler = e => {
+        setUserInfo(previousState => ({ ...previousState, [e.target.name]: e.target.value }))
+        e.persist()
+    }
+
+    const override = css`
+    display: block;
+    margin: 0 auto;
+    display: flex;
+    color: #000;
+    `;
+
+    const submitHandler = e => {
+        const errors = handleError(userInfo);
+        setUserInfo({ ...userInfo, errors })
+        if(Object.keys(errors).length === 0 && newUser) {
+            setLoading(true);
+            createUserWithEmailAndPassword({ firstName, lastName, email, password })
+            .then(res => {
+                setLoading(false)
+                if(res.error) {
+                    setUserInfo({ ...userInfo, errors: res })
+                } else {
+                    setUser({ ...res })
+                    history.replace(from)
+                }
+            })
+        }
+        if(!errors.email && !errors.password) {
+            if (userInfo.password && userInfo.email && !newUser) {
+                setLoading(true);
+                signInWithEmailAndPassword({ email, password })
+                .then(res => {
+                    setLoading(false)
+                    if (res.error) {
+                        setUserInfo({ ...userInfo, errors: res })
+                    } else {
+                        setUser({ ...res })
+                        history.replace(from)
+                    }
+                })
+            }
+        }
+        e.preventDefault();
+    }
+
+    const googleSignIn = () => {
+        handleGoogleSignIn()
         .then(res => {
-            setUser(res);
-            setLoggedInUser(res);
-            history.replace(from);
+            if (res.error) {
+                setUserInfo({ ...userInfo, errors: res })
+            } else {
+                setUser({ ...res })
+                history.replace(from)
+            }
         })
     }
 
-    const fbSignin = () => {
-        handleFbSignin()
+    const fbSignIn = () => {
+        handleFbSignIn()
         .then(res => {
-            setUser(res);
-            setLoggedInUser(res);
-            history.replace(from);
+            if (res.error) {
+                setUserInfo({ ...userInfo, errors: res })
+            } else {
+                setUser({ ...res })
+                history.replace(from)
+            }
         })
     }
-    
-    const handleBlur = (event) => {
-        let isFieldValid = true;
-        if(event.target.name === 'email'){
-            isFieldValid = /\S+@\S+\.\S+/.test(event.target.value);
-            if (isFieldValid === false){
-                const newUserInfo = {...user};
-                newUserInfo.error = "Invalid email! Please enter a valid email.";
-                setUser(newUserInfo);
-            }
-        }
-        if (event.target.name === 'password') {
-            const isPasswordValid = event.target.value.length > 6;
-            const passwordHasNumber =  /\d{1}/.test(event.target.value);
-            isFieldValid = isPasswordValid && passwordHasNumber;
-            if (isFieldValid === false) {
-                const newUserInfo = { ...user };
-                newUserInfo.error = "Password should be more than 6 characters and contains at least one number.";
-                setUser(newUserInfo);
-            }
-        }
-        if (isFieldValid) {
-            const newUserInfo = { ...user };
-            newUserInfo[event.target.name] = event.target.value;
-            newUserInfo.error = '';
-            setUser(newUserInfo);
-        }
-    }
 
-    const handleSubmit = (event) => {
-        if(newUser && user.email && user.password){
-            createUserWithEmailAndPassword(user.name, user.email, user.password)
-            .then(res => {
-                setUser(res);
-                setLoggedInUser(res);
-                history.replace(from);
-            })
-        }
-        event.preventDefault();
-    }
+    useEffect(() => {
+        setUserInfo({ ...initUser })
+    }, [newUser])
 
-    const handleSignIn = event => {
-        if(!newUser && user.email && user.password){
-            signInWithEmailAndPassword(user.email, user.password)
-            .then(res => {
-                setUser(res);
-                setLoggedInUser(res);
-                history.replace(from);
-            })
-        }
-        event.preventDefault();
+    useEffect(() => {
+        console.log('form login');
+    }, []);
+
+    const { firstName, lastName, email, password, confirmPassword, errors } = userInfo;
+
+    if (user) {
+        return <Redirect to='/' />
     }
-    
+    if(loading) {
+        return (
+            <div className="sweet-loading">
+                <FadeLoader
+                    css={override}
+                    size={150}
+                    loading={loading}
+                />
+            </div>
+        );
+    };
 
     return (
-        <div>
-            <Navbar></Navbar>
-            <div className="container login-form mt-5">
-            {newUser ? <h1 className="mb-5">Create an account</h1> : <h1 className="mb-5">Login</h1>}
-                <form className="form-details mt-5" onSubmit={newUser ? handleSubmit : handleSignIn}>
-
-                    { newUser &&
-                        <>
-                            <label>UserName</label>
-                            <input type="text" name="name" onBlur={handleBlur} placeholder="Enter your UserName" required/>
-                        </>
-                    }
-
-                    <label>Email </label>
-                    <input type="text" name="email" onBlur={handleBlur} placeholder="Enter your Email" required/>
-
-                    <label>Password</label>
-                    <input type="password" name="password" onBlur={handleBlur} placeholder="Password" required/>
-
-                    { newUser &&
-                        <>
-                            <label>Confirm Password</label>
-                            <input type="password" name="password" onBlur={handleBlur} placeholder="Confirm Password" required/>
-                        </>
-                    }
-                
-                    {newUser ? <input type="submit" value="Submit"/> : <input type="submit" value="Login"/>}
-                    
-
-                    <p style={{textAlign: 'center'}}><small>{newUser ? 'Already have an account?' : "don't have an account?"}</small><span style={{color: 'blue', cursor: 'pointer'}} onClick={() => setNewUser(!newUser)}>{newUser ? 'Login' : 'Create an account'}</span></p>
-                             
-                    
-                </form>
-
-                {user.error && <p style={{ color: 'red', textAlign: 'center' }}>{user.error}</p>}
-
-                <button className="google-details mt-3 ml-5" onClick={googleSignin}>
-                    <div className="row google-btn">
-                        <div className="col-2 mt-2">
-                            <img src={Google} alt="" style={{width:"20px"}}/>
-                        </div>
-                        <div className="col-10 mt-2">
-                            <p>Continue with Google</p>
-                        </div>
+        <Container className="pr-0 pt-5">
+            <Row>
+                <Col sm={8} className="m-auto" xl={6} md="8">
+                    <Card>
+                        <Card.Body>
+                            <h2 className="py-1">{newUser ? 'Create an account' : 'Login'}</h2>
+                            <Form autoComplete="off" onSubmit={submitHandler}>
+                                {newUser && (
+                                    <InputItem 
+                                        value={firstName}
+                                        onChangeHandler={onChangeHandler}
+                                        error={errors.firstName}
+                                        name="firstName"
+                                        customClass="loginInput" autoFocus
+                                        placeholder="First Name"
+                                    />
+                                )}
+                                {newUser && (
+                                    <InputItem 
+                                        value={lastName}
+                                        onChangeHandler={onChangeHandler}
+                                        error={errors.lastName}
+                                        name="lastName"
+                                        customClass="loginInput"
+                                        placeholder="Last Name"
+                                    />
+                                )}
+                                <InputItem
+                                    value={email}
+                                    onChange={onChangeHandler}
+                                    error={errors.email}
+                                    name="email"
+                                    customClass="loginInput"
+                                    type="email"
+                                    placeholder="Email"
+                                />
+                                <InputItem
+                                    value={password}
+                                    onChange={onChangeHandler}
+                                    error={errors.password}
+                                    name="password"
+                                    customClass="loginInput"
+                                    type="password"
+                                    placeholder="Password"
+                                />
+                                {newUser && (
+                                    <InputItem
+                                        value={confirmPassword}
+                                        onChange={onChangeHandler}
+                                        error={errors.confirmPassword}
+                                        name="confirmPassword"
+                                        customClass="loginInput"
+                                        type="password"
+                                        placeholder="Confirm Password"
+                                    />
+                                )}
+                                {errors.error && (
+                                    <p className="text-danger text-center py-2">
+                                        {errors.error}
+                                    </p>
+                                )}
+                                <Button className="w-100" variant="warning" type="submit">
+                                    {newUser ? 'Create an account' : 'Login'}
+                                </Button>
+                            </Form>
+                            <p className="text-center pt-2">
+                                {newUser ? 'Already have an account' : "Don't have an account"} ?
+                                <span onClick={() => setNewUser(!newUser)} className="text-warning login">
+                                    {newUser ? 'Login' : 'Create an account'}
+                                </span>
+                            </p>
+                        </Card.Body>
+                    </Card>
+                    <div className="orr mt-2 w-75">Or</div>
+                    <div className="google-sign-in mt-2 w-75" onClick={googleSignIn}>
+                        <span>Continue with google <img className="google" src={Google} alt="google" /></span>
                     </div>
-                </button>
-                <button className="google-details mt-3 ml-5 mb-5" onClick={fbSignin}>
-                    <div className="row google-btn">
-                        <div className="col-2 mt-2">
-                            <img src={Fb} alt="" style={{width:"20px"}}/>
-                        </div>
-                        <div className="col-10 mt-2">
-                            <p>Continue with Facebook</p>
-                        </div>
+                    <div className="google-sign-in mt-2 w-75" onClick={fbSignIn}>
+                        <span>Continue with google <img className="google" src={Fb} alt="google" /></span>
                     </div>
-                </button>
-            </div>
-            
-        </div>
-
+                </Col>
+            </Row>
+        </Container>
     );
 };
 

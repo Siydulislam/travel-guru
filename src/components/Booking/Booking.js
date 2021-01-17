@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 // import { Link } from 'react-router-dom';
 import Background from '../../images/Background.png';
-import Navbar from '../Navbar/Navbar';
 import './Booking.css';
 import 'react-datepicker/dist/react-datepicker.css';
 import { useHistory } from 'react-router-dom';
@@ -25,7 +24,6 @@ const Booking = () => {
 
     return (
         <div style={backgroundImage}>
-            <Navbar></Navbar>
             <div className="container mt-5">
                 <div className="row mt-5">
                     <div className="col-6 mt-5 text-white">

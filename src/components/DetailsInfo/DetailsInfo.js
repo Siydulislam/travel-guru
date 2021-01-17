@@ -1,5 +1,5 @@
 import React from 'react';
-import Navbar from '../Navbar/Navbar';
+import Header from '../Header/Header';
 import ApartmentOne from '../../images/ApartmentOne.png';
 import ApartmentTwo from '../../images/ApartmentTwo.png';
 import Lounge from '../../images/Lounge.png';
@@ -11,7 +11,7 @@ import Map from '../Map/Map';
 const DetailsInfo = () => {
     return (
         <div>
-            <Navbar></Navbar>
+            <Header></Header>
             <div className="container mt-5">
                 <div className="row">
                     <div className="col-6">
