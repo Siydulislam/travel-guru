@@ -1,73 +1,71 @@
-import React, { useState } from 'react';
-import DatePicker from 'react-datepicker';
-// import { Link } from 'react-router-dom';
-import Background from '../../images/Background.png';
-import './Booking.css';
-import 'react-datepicker/dist/react-datepicker.css';
-import { useHistory } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import { Button, Card, Col, Container, Form, Jumbotron, Row } from 'react-bootstrap';
+import { useHistory, useParams } from 'react-router-dom';
+import locations from '../../fakeData/data';
+import InputDate from './InputDate';
+import InputItem from '../Input/InputItem';
+import { UserContext } from '../../App';
 
 const Booking = () => {
+  const { id } = useParams();
+  const { bookingInfo, setBookingInfo } = useContext(UserContext);
 
-    const [selectedDate, setSelectedDate] = useState(null);
-    const history = useHistory();
+  const [formDate, setFormDate] = useState(new Date());
+  const [toDate, setToDate] = useState(new Date(Date.now() + 5 * 24 * 60 * 60 * 1000));
+  const history = useHistory();
+  const [booking, setBooking] = useState({
+    location: {},
+    origin: '',
+    destination: ''
+  });
 
-    const handleProceedBooking = () => {
-        history.push('/details');
-    }
+  useEffect(() => {
+    const bookingLocation = locations.find(location => location.id.toString() === id)
+    setBooking(previousState => ({ ...previousState, location: bookingLocation, destination: bookingLocation.name }))
 
-    const backgroundImage = {
-        background: `url(${Background})`,
-        backgroundSize: '100% 100%',
-        width: '100%',
-        height: '100vh'
-    }
+  }, [id])
 
-    return (
-        <div style={backgroundImage}>
-            <div className="container mt-5">
-                <div className="row mt-5">
-                    <div className="col-6 mt-5 text-white">
-                        <h1><strong>Sundorbon</strong></h1>
-                        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Laborum ex praesentium expedita alias, ad eum tempora quisquam possimus, aliquam corrupti mollitia impedit quo, dolorem nostrum et. Odio voluptatum incidunt non nam excepturi est totam accusantium distinctio maiores nisi debitis illo vero, mollitia soluta iure saepe! Quas odio vero sed consequuntur, aspernatur et eum at repellat accusamus? Accusamus, deleniti, dolore quos quidem at non nemo debitis velit ullam atque placeat ut reiciendis. Sed, quis accusamus laboriosam nemo et explicabo quas perferendis adipisci nihil molestiae ducimus aliquid velit illo ipsam sint dicta suscipit vero alias voluptatum quaerat reprehenderit aut excepturi unde fuga?</p>
-                    </div>
-                    <div className="col-6 mt-5">
-                        <form className="form-details">
-                            <label>Origin</label>
-                            <input type="text" placeholder="Dhaka"/>
+  const onChangeHandler = e => {
+    setBooking(previousState => ({ ...previousState, [e.target.name]: e.target.value }))
+    e.persist()
+  }
 
-                            <label>Destination</label>
-                            <input type="text" placeholder="Sundorbon"/>
+  const submitHandler = e => {
+    setBookingInfo({ ...bookingInfo, ...booking, formDate, toDate })
+    history.push(`/details/${id}`)
+    e.preventDefault();
+  }
 
-                            <div className="row">
-                                <div className="col-6">
-                                    <label>From</label>
-                                    <DatePicker
-                                        placeholderText={'Select date'}
-                                        selected = {selectedDate}
-                                        onChange = {date => setSelectedDate(date)}
-                                        dateFormat='dd/MM/yyyy'
-                                        minDate={new Date()}
-                                    />
-                                </div>
-                                <div className="col-6">
-                                    <label className="ml-2">To</label>
-                                    <DatePicker
-                                        placeholderText={'Select date'}
-                                        selected = {selectedDate}
-                                        onChange = {date => setSelectedDate(date)}
-                                        dateFormat='dd/MM/yyyy'
-                                    />
-                                </div>
-                            </div>
-                        
-                            <input type="submit" value="Start Booking" onClick={handleProceedBooking}/>
-                        </form>
-                    </div>
-                    
-                </div>
-            </div>
-        </div>
-    );
+  return (
+    <Container className="mt-5 pt-5">
+      <Row>
+        <Col sm={6} xl={6}>
+          <Jumbotron className="bg-transparent px-0">
+            <h1 className="font-weight-bold">{booking.location.name}</h1>
+            <p>{booking.location.description}</p>
+          </Jumbotron>
+        </Col>
+        <Col xl={1} />
+        <Col sm={6} xl={5}>
+          <Card>
+            <Card.Body>
+              <Form onSubmit={submitHandler} autoComplete="off">
+                <InputItem value={booking.origin}
+                  onChangeHandler={onChangeHandler} name="origin" label="Origin" placeholder="Origin" autoFocus />
+                <InputItem value={booking.destination}
+                  onChangeHandler={onChangeHandler} name="destination" placeholder="Destination" label="Destination" />
+                <Form.Row>
+                  <InputDate label='Form' date={formDate} setDate={setFormDate} />
+                  <InputDate label='To' date={toDate} setDate={setToDate} />
+                </Form.Row>
+                <Button className="w-100" variant="warning" type="submit">Start Booking</Button>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+  );
 };
 
 export default Booking;

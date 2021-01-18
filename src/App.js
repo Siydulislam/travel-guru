@@ -1,9 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react';
 import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css';
 import Home from './components/Home/Home';
 import {
-  BrowserRouter as Router,
   Switch,
   Route,
   useLocation
@@ -37,15 +35,14 @@ function App() {
     <UserContext.Provider value = {{ user, setUser, bookingInfo, setBookingInfo, signOutUser }}>
       <div className={`${location.pathname === '/' || location.pathname.includes('booking') ? 'home' : ''}`}>
         <Header></Header>
-        <Router>
           <Switch>
             <Route exact path="/">
               <Home></Home>
             </Route>
-            <Route path="/booking">
+            <Route path="/booking/:id">
               <Booking></Booking>
             </Route>
-            <PrivateRoute path="/details">
+            <PrivateRoute path="/details/:id">
               <DetailsInfo></DetailsInfo>
             </PrivateRoute>
             <Route path="/login">
@@ -55,7 +52,6 @@ function App() {
               <PageNotFound></PageNotFound>
             </Route>
           </Switch>
-        </Router>
       </div>
     </UserContext.Provider>
   );

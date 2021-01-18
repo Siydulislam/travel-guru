@@ -12,22 +12,22 @@ export const initializeLoginFramework = () => {
 export const handleGoogleSignIn = () => {
     const googleProvider = new firebase.auth.GoogleAuthProvider();
     return firebase.auth().signInWithPopup(googleProvider)
-    .then(res => {
-        const {displayName, email, photoURL, emailVerified } = res.user;
+      .then(res => {
+        const { displayName, email, photoURL, emailVerified } = res.user;
         const user = {
-            name: displayName,
-            email: email,
-            photo: photoURL,
-            emailVerified
+          name: displayName,
+          email: email,
+          photo: photoURL,
+          emailVerified
         }
         return user;
-    })
-    .catch(error => {
+      })
+      .catch(error => {
         const errors = {}
         errors.error = error.message;
         return errors;
-    })
-}
+      });
+  }
 
 export const handleFbSignIn = () => {
     const fbProvider = new firebase.auth.FacebookAuthProvider();
@@ -50,57 +50,57 @@ export const handleFbSignIn = () => {
     })
 }
 
-export const createUserWithEmailAndPassword = ({ firstName, lastName, email, password}) => {
+export const createUserWithEmailAndPassword = ({ firstName, lastName, email, password }) => {
     return firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then( res => {
-            const name = `${firstName + ' ' +  lastName}`;
-            const { email } = res.user;
-            const signedInUser = {
-                name,
-                email
-            }
-            updateUserName(name);
-            verifyEmail();
-            return signedInUser;
-        })
-        .catch(error => {
-            const errors = {};
-            if(error.code === 'auth/email-already-in-use') {
-                errors.error = "This email address is already in use by another account!";
-            } else {
-                errors.error = error.message;
-            }
-            return errors;
-        });
-}
+      .then(res => {
+        const name = `${firstName + ' ' + lastName}`;
+        const { email } = res.user;
+        const singedInUser = {
+          name,
+          email,
+        }
+        updateUserName(name);
+        verifyEmail();
+        return singedInUser;
+      })
+      .catch(error => {
+        const errors = {}
+        if (error.code === 'auth/email-already-in-use') {
+          errors.error = "The email address is already in use by another account!";
+        }
+        else {
+          errors.error = error.message;
+        }
+        return errors;
+      });
+  }
 
 export const signInWithEmailAndPassword = ({ email, password }) => {
-    return firebase.auth().signInWithEmailAndPassword(email, password)
-        .then(res => {
-            const { displayName, email, emailVerified } = res.user;
-            const user = {
-                name: displayName,
-                email: email,
-                emailVerified
-            }
-            if (!emailVerified) {
-                verifyEmail();
-            }
-            return user;
-        })
-        .catch(error => {
-            const errors = {}
-            if(error.code === 'auth/user-not-found') {
-                errors.error = "No user found with this email!";
-            }
-            else if (error.code === 'auth/wrong-password') {
-                errors.error = "The password that you've entered is incorrect!";
-            }
-            else {
-                errors.error = error.message;
-            }
-            return errors;
-        });
+  return firebase.auth().signInWithEmailAndPassword(email, password)
+    .then(res => {
+      const { displayName, email, emailVerified } = res.user;
+      const user = {
+        name: displayName,
+        email: email,
+        emailVerified
+      }
+      if (!emailVerified) {
+        verifyEmail();
+      }
+      return user;
+    })
+    .catch(error => {
+      const errors = {}
+      if (error.code === 'auth/user-not-found') {
+        errors.error = "No user found with this email!";
+      }
+      else if (error.code === 'auth/wrong-password') {
+        errors.error = "The password that you've entered is incorrect!";
+      } else {
+        errors.error = error.message;
+      }
+      return errors;
+    });
 }
 
 export const handleSignOut = () => {

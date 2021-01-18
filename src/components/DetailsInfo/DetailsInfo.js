@@ -1,108 +1,46 @@
-import React from 'react';
-import Header from '../Header/Header';
-import ApartmentOne from '../../images/ApartmentOne.png';
-import ApartmentTwo from '../../images/ApartmentTwo.png';
-import Lounge from '../../images/Lounge.png';
-import Star from '../../images/Star.png';
-import './DetailsInfo.css';
+import React, { useContext, useEffect, useState } from 'react';
+import { Card, Col, Container, Row } from 'react-bootstrap';
+import { useParams } from 'react-router-dom';
+import { UserContext } from '../../App';
+import locations from '../../fakeData/data';
 import Map from '../Map/Map';
-
+import HotelItem from './HotelItem';
 
 const DetailsInfo = () => {
-    return (
-        <div>
-            <Header></Header>
-            <div className="container mt-5">
-                <div className="row">
-                    <div className="col-6">
-                        <p><small>252 stays Apr 13-17 3 guests</small></p>
-                        <h3 className="mb-4">Stay in Cox's Bazar</h3>
-                        <div className="card mb-3 border border-white" style={{width: '540px'}}>
-                            <div className="row no-gutters">
-                                <div className="col-md-4">
-                                <img src={ApartmentOne} className="card-img" alt="..."/>
-                                </div>
-                                <div className="col-md-8">
-                                    <div className="card-body mt-auto">
-                                        <h6 className="card-title">Light bright airy stylish apt and safe peachful stay </h6>
-                                        <p className="card-text"><small>4 Guests 2 bedrooms 2 beds 2 baths</small></p>
-                                        <p className="card-text"><small>Wif Air Conditioning Kitchen</small></p>
-                                        <p className="card-text"><small>Cancellation fexibility available</small></p>
-                                    </div>
-                                    <div className="container row">
-                                        <div className="col-4">
-                                            <div>
-                                                <img src={Star} alt="" style={{width:'15px'}}/>
-                                                <p className="star-rate"><small>4.8(10)</small></p>
-                                            </div>
-                                        </div>
-                                        <div className="col-8">
-                                            <p><small>$34/night $167 total</small></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="card mb-3 border border-white" style={{width: '540px'}}>
-                            <div className="row no-gutters">
-                                <div className="col-md-4">
-                                <img src={ApartmentTwo} className="card-img" alt="..."/>
-                                </div>
-                                <div className="col-md-8">
-                                    <div className="card-body">
-                                        <h6 className="card-title">Apartment in Lost Panorama</h6>
-                                        <p className="card-text"><small>4 Guests 2 bedrooms 2 beds 2 baths</small></p>
-                                        <p className="card-text"><small>Wif Air Conditioning Kitchen</small></p>
-                                        <p className="card-text"><small>Cancellation fexibility available</small></p>
-                                    </div>
-                                    <div className="container row">
-                                        <div className="col-4">
-                                            <div>
-                                                <img src={Star} alt="" style={{width:'15px'}}/>
-                                                <p className="star-rate"><small>4.8(10)</small></p>
-                                            </div>
-                                        </div>
-                                        <div className="col-8">
-                                            <p><small>$34/night $167 total</small></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="card mb-3 border border-white" style={{width: '540px'}}>
-                            <div className="row no-gutters">
-                                <div className="col-md-4">
-                                <img src={Lounge} className="card-img" alt="..."/>
-                                </div>
-                                <div className="col-md-8">
-                                    <div className="card-body">
-                                        <h6 className="card-title">AR Lounge and Pool (r&r + b&b)</h6>
-                                        <p className="card-text"><small>4 Guests 2 bedrooms 2 beds 2 baths</small></p>
-                                        <p className="card-text"><small>Wif Air Conditioning Kitchen</small></p>
-                                        <p className="card-text"><small>Cancellation fexibility available</small></p>
-                                    </div>
-                                    <div className="container row">
-                                        <div className="col-4">
-                                            <div>
-                                                <img src={Star} alt="" style={{width:'15px'}}/>
-                                                <p className="star-rate"><small>4.8(10)</small></p>
-                                            </div>
-                                        </div>
-                                        <div className="col-8">
-                                            <p><small>$34/night $167 total</small></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="col-6">
-                        <Map></Map>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+  const { id } = useParams();
+  const { bookingInfo } = useContext(UserContext);
+  const [hotels, setHotels] = useState([]);
+
+  useEffect(() => {
+    const bookingLocation = locations.find(location => location.id.toString() === id)
+    setHotels(previousState => ([...previousState, ...bookingLocation.hotels]))
+  }, [id])
+
+  return (
+    <Container className="pt-5">
+      <Row>
+        <Col sm={6} xl={7}>
+          <p>252 stays
+            {"  " + new Date(bookingInfo.formDate).toLocaleString('default', { month: 'long' })}
+
+            {"  " + new Date(bookingInfo.formDate).getDate()}
+             -
+            {"  " + new Date(bookingInfo.toDate).toLocaleString('default', { month: 'long' })}
+            {"  " + new Date(bookingInfo.toDate).getDate() + "  "}
+               guests(3)</p>
+          <h4>Stay in {bookingInfo.destination}</h4>
+          {hotels.map(hotel => <HotelItem key={hotel.id} hotel={hotel} />)}
+        </Col>
+        <Col sm={6} xl={5} className="mt-4">
+          <Card className="mt-5">
+            <Card.Body>
+              <Map></Map>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+  );
 };
 
 export default DetailsInfo;

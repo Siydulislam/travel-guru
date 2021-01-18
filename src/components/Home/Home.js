@@ -11,7 +11,6 @@ import 'swiper/swiper.scss';
 import 'swiper/components/navigation/navigation.scss';
 import 'swiper/components/pagination/pagination.scss';
 import 'swiper/components/scrollbar/scrollbar.scss';
-import Background from '../../images/Background.png';
 
 SwiperCore.use([Navigation, Pagination, Scrollbar, A11y, Autoplay]);
 
@@ -34,15 +33,8 @@ const Home = () => {
     }
   }
 
-  const backgroundImage = {
-    background: `url(${Background})`,
-    backgroundSize: '100% 100%',
-    width: '100%',
-    height: '100vh'
-  }
-
   return (
-    <Container className="pr-0 mt-5 pt-5" style={backgroundImage}>
+    <Container className="pr-0 mt-5 pt-5">
       <Row>
         <Col sm={4} xl={4}>
           <Jumbotron className="bg-transparent px-0">

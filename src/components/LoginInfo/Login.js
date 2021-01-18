@@ -4,7 +4,6 @@ import { css } from '@emotion/core';
 import FadeLoader from 'react-spinners/FadeLoader';
 import Google from '../../images/Google.png';
 import Fb from '../../images/Fb.png';
-import './SignUp.css';
 import { UserContext } from '../../App';
 import { createUserWithEmailAndPassword, handleFbSignIn, handleGoogleSignIn, initializeLoginFramework, signInWithEmailAndPassword } from './FirebaseInfo';
 import { Button, Card, Col, Container, Form, Row } from 'react-bootstrap';
@@ -202,10 +201,10 @@ const Login = () => {
                     </Card>
                     <div className="orr mt-2 w-75">Or</div>
                     <div className="google-sign-in mt-2 w-75" onClick={googleSignIn}>
-                        <span>Continue with google <img className="google" src={Google} alt="google" /></span>
+                        <span><img className="google" src={Google} alt="google" />Continue with google </span>
                     </div>
                     <div className="google-sign-in mt-2 w-75" onClick={fbSignIn}>
-                        <span>Continue with google <img className="google" src={Fb} alt="google" /></span>
+                        <span> <img className="google" src={Fb} alt="google" /> Continue with facebook </span>
                     </div>
                 </Col>
             </Row>
